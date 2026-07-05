@@ -16,7 +16,7 @@ import {
   useCreateEntity,
   useCreateEntities,
   useRenameEntity,
-  useDeleteEntity,
+  useDeleteEntities,
 } from '@/network/mutations/dataroom-mutations.ts';
 import type { FolderMetadata, FileMetadata } from '@/types/dataroom.ts';
 
@@ -56,7 +56,7 @@ export function ApplicationLayout() {
     userId,
     selectedDataroomId ?? undefined
   );
-  const deleteEntityMutation = useDeleteEntity(
+  const deleteEntitiesMutation = useDeleteEntities(
     userId,
     selectedDataroomId ?? undefined
   );
@@ -201,14 +201,15 @@ export function ApplicationLayout() {
     [folderPath, renameEntityMutation]
   );
 
-  const handleDeleteEntity = useCallback(
-    (entityId: string) => {
-      deleteEntityMutation.mutate({
+  const handleDeleteEntities = useCallback(
+    (entityIds: string[]) => {
+      if (entityIds.length === 0) return;
+      deleteEntitiesMutation.mutate({
         parentPath: folderPath,
-        entityId,
+        entityIds,
       });
     },
-    [folderPath, deleteEntityMutation]
+    [folderPath, deleteEntitiesMutation]
   );
 
   const folders: FolderMetadata[] = contents?.folders ?? [];
@@ -251,7 +252,7 @@ export function ApplicationLayout() {
                 parentPath={folderPath}
                 onCreate={handleCreateFolder}
                 onRename={handleRenameEntity}
-                onDelete={handleDeleteEntity}
+                onDelete={handleDeleteEntities}
               />
               <EntityContainer
                 entities={files}
@@ -261,7 +262,7 @@ export function ApplicationLayout() {
                 parentPath={folderPath}
                 onUploadFiles={handleUploadFiles}
                 onRename={handleRenameEntity}
-                onDelete={handleDeleteEntity}
+                onDelete={handleDeleteEntities}
               />
             </>
           )}

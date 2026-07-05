@@ -8,6 +8,7 @@ import {
   createEntities,
   renameEntity,
   deleteEntity,
+  deleteEntities,
 } from '@/network/api/dataroom-api.ts';
 
 const DATAROOMS_KEY = 'datarooms';
@@ -120,6 +121,29 @@ export function useRenameEntity(
       entityId: string;
       newName: string;
     }) => renameEntity(userId!, dataroomId!, parentPath, entityId, newName),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [DATAROOM_CONTENTS_KEY],
+      });
+    },
+  });
+}
+
+/** Delete multiple entities (files/folders) in a single atomic write. */
+export function useDeleteEntities(
+  userId: string | undefined,
+  dataroomId: string | undefined
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      parentPath,
+      entityIds,
+    }: {
+      parentPath: string | null;
+      entityIds: string[];
+    }) => deleteEntities(userId!, dataroomId!, parentPath, entityIds),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [DATAROOM_CONTENTS_KEY],

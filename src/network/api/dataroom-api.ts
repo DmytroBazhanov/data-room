@@ -220,13 +220,15 @@ export async function renameEntity(
   return renamed;
 }
 
-/** Delete an entity (folder or file) inside a dataroom. */
-export async function deleteEntity(
+/** Delete one or more entities (folders or files) inside a dataroom in a single atomic operation. */
+export async function deleteEntities(
   userId: string,
   dataroomId: string,
   parentPath: string | null,
-  entityId: string
+  entityIds: string[]
 ): Promise<boolean> {
+  if (entityIds.length === 0) return true;
+
   const record = await getDataroom(userId, dataroomId);
   if (!record) return false;
 
@@ -236,9 +238,25 @@ export async function deleteEntity(
 
   if (!parent) return false;
 
-  const deleted = deleteChildEntity(parent, entityId);
-  if (deleted) {
+  let anyDeleted = false;
+  for (const entityId of entityIds) {
+    if (deleteChildEntity(parent, entityId)) {
+      anyDeleted = true;
+    }
+  }
+
+  if (anyDeleted) {
     await putDataroom(record);
   }
-  return deleted;
+  return anyDeleted;
+}
+
+/** Delete a single entity (folder or file) inside a dataroom. */
+export async function deleteEntity(
+  userId: string,
+  dataroomId: string,
+  parentPath: string | null,
+  entityId: string
+): Promise<boolean> {
+  return deleteEntities(userId, dataroomId, parentPath, [entityId]);
 }

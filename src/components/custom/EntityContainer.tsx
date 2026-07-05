@@ -19,7 +19,7 @@ interface EntityContainerProps {
   onCreate?: (name: string) => void;
   onUploadFiles?: (files: File[]) => void;
   onRename?: (entityId: string, newName: string) => void;
-  onDelete?: (entityId: string) => void;
+  onDelete?: (entityIds: string[]) => void;
 }
 
 export function EntityContainer({
@@ -152,8 +152,8 @@ export function EntityContainer({
   }, [getSelectedIds]);
 
   const handleDeleteConfirm = useCallback(() => {
-    if (deleteTargetIds) {
-      deleteTargetIds.forEach((id) => onDelete?.(id));
+    if (deleteTargetIds && deleteTargetIds.length > 0) {
+      onDelete?.(deleteTargetIds);
     }
     setDeleteTargetIds(null);
     setSelectedMap({});
