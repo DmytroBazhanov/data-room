@@ -1,4 +1,5 @@
+- In this project all requests should be mocked, unless explicitly stated otherwise in prompt
 - When adding fetch requests add fetch logic to ./network/api/suitable-api-name instead of adding fetch inside component.
 - Add useQuery/useMutation hooks to ./network/queries/suitable-api-name for queries /network/mutations/suitable-api-name for mutations.
 - Provide arguments for functions you create for component to be able to pass values for request logic.
-- Use tanstack query for react queries and fetch to fetch data.- 
+- Use tanstack query for react queries and fetch to fetch data.

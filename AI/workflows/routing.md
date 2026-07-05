@@ -1,0 +1,2 @@
+- Application has only one route you shouldn't add another.
+- Url string is used to save user path inside of folder hierarchy
