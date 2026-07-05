@@ -5,6 +5,7 @@ import {
   renameDataroom,
   removeDataroom,
   createEntity,
+  createEntities,
   renameEntity,
   deleteEntity,
 } from '@/network/api/dataroom-api.ts';
@@ -20,6 +21,29 @@ export function useCreateDataroom(userId: string | undefined) {
     mutationFn: (name: string) => createDataroom(userId!, name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [DATAROOMS_KEY] });
+    },
+  });
+}
+
+/** Create multiple entities (files/folders) in a single atomic write. */
+export function useCreateEntities(
+  userId: string | undefined,
+  dataroomId: string | undefined
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      parentPath,
+      entities,
+    }: {
+      parentPath: string | null;
+      entities: { metadata: FolderMetadata | FileMetadata; blob?: Blob }[];
+    }) => createEntities(userId!, dataroomId!, parentPath, entities),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [DATAROOM_CONTENTS_KEY],
+      });
     },
   });
 }

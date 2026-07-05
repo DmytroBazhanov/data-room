@@ -41,7 +41,6 @@ export function FileUploadDialog({
     setRawFiles(files);
   };
 
-  // Process files with all validation rules
   const { validFiles, errors: globalErrors } = useMemo(() => {
     const results: FileValidationResult[] = [];
     const nameCountMap = new Map<string, number>();
@@ -49,40 +48,33 @@ export function FileUploadDialog({
     for (const file of rawFiles) {
       const errors: string[] = [];
 
-      // Empty file check
       if (file.size === 0) {
         errors.push('File is empty');
       }
 
-      // Size check
       if (file.size > MAX_FILE_SIZE) {
         const mb = (file.size / (1024 * 1024)).toFixed(1);
         errors.push(`File too large (${mb} MB). Maximum is 5 MB.`);
       }
 
-      // Type check
       if (file.type !== ALLOWED_TYPE) {
         errors.push(
           `Only PDF files are allowed. Got: ${file.type || 'unknown'}`
         );
       }
 
-      // Name processing
       let processedName = file.name;
 
-      // Remove extension for truncation, then re-add
       const lastDot = processedName.lastIndexOf('.');
       const baseName =
         lastDot > 0 ? processedName.slice(0, lastDot) : processedName;
       const ext = lastDot > 0 ? processedName.slice(lastDot) : '';
 
-      // Truncate long names (> 50 including extension)
       const maxBaseLen = MAX_NAME_LENGTH - ext.length;
       if (baseName.length > maxBaseLen) {
         processedName = baseName.slice(0, maxBaseLen) + ext;
       }
 
-      // Deduplicate names by adding index numbers
       const count = nameCountMap.get(processedName) ?? 0;
       if (count > 0) {
         const insertIdx =
@@ -113,7 +105,6 @@ export function FileUploadDialog({
 
   const handleConfirm = () => {
     if (validFiles.length > 0) {
-      // Create renamed File objects from processed names
       const renamed = validFiles.map((vf) => {
         if (vf.processedName !== vf.file.name) {
           return new File([vf.file], vf.processedName, {

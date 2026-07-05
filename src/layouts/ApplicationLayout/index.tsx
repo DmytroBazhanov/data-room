@@ -14,6 +14,7 @@ import {
   useRenameDataroom,
   useDeleteDataroom,
   useCreateEntity,
+  useCreateEntities,
   useRenameEntity,
   useDeleteEntity,
 } from '@/network/mutations/dataroom-mutations.ts';
@@ -44,6 +45,10 @@ export function ApplicationLayout() {
 
   // Mutations — entity level
   const createEntityMutation = useCreateEntity(
+    userId,
+    selectedDataroomId ?? undefined
+  );
+  const createEntitiesMutation = useCreateEntities(
     userId,
     selectedDataroomId ?? undefined
   );
@@ -127,12 +132,12 @@ export function ApplicationLayout() {
     [selectedDataroomId, folderPath, createEntityMutation]
   );
 
-  // Upload files — extracts metadata from File objects
+  // Upload files — extracts metadata from File objects, batches into one atomic write
   const handleUploadFiles = useCallback(
     (files: File[]) => {
-      if (!selectedDataroomId) return;
+      if (!selectedDataroomId || files.length === 0) return;
 
-      for (const file of files) {
+      const entities = files.map((file) => {
         const id = crypto.randomUUID();
         const now = new Date();
         const parentPath = folderPath ?? '';
@@ -153,14 +158,12 @@ export function ApplicationLayout() {
           mimeType: file.type || 'application/octet-stream',
         };
 
-        createEntityMutation.mutate({
-          parentPath: folderPath,
-          metadata,
-          blob: file,
-        });
-      }
+        return { metadata, blob: file };
+      });
+
+      createEntitiesMutation.mutate({ parentPath: folderPath, entities });
     },
-    [selectedDataroomId, folderPath, createEntityMutation]
+    [selectedDataroomId, folderPath, createEntitiesMutation]
   );
 
   const handleRenameEntity = useCallback(

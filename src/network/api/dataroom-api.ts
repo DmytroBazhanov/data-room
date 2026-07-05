@@ -149,14 +149,20 @@ export async function removeDataroom(
 
 // ---- CRUD: Folder / File inside a dataroom ----
 
-/** Create a folder or file inside a dataroom at a given path. */
-export async function createEntity(
+interface CreateEntityInput {
+  metadata: FolderMetadata | FileMetadata;
+  blob?: Blob;
+}
+
+/** Create one or more folders/files inside a dataroom in a single atomic operation. */
+export async function createEntities(
   userId: string,
   dataroomId: string,
   parentPath: string | null,
-  metadata: FolderMetadata | FileMetadata,
-  blob?: Blob
+  entities: CreateEntityInput[]
 ): Promise<boolean> {
+  if (entities.length === 0) return true;
+
   const record = await getDataroom(userId, dataroomId);
   if (!record) return false;
 
@@ -166,11 +172,28 @@ export async function createEntity(
 
   if (!parent) return false;
 
-  const created = createChildEntity(parent, metadata, blob);
-  if (created) {
+  let anyCreated = false;
+  for (const { metadata, blob } of entities) {
+    if (createChildEntity(parent, metadata, blob)) {
+      anyCreated = true;
+    }
+  }
+
+  if (anyCreated) {
     await putDataroom(record);
   }
-  return created;
+  return anyCreated;
+}
+
+/** Create a single folder or file inside a dataroom at a given path. */
+export async function createEntity(
+  userId: string,
+  dataroomId: string,
+  parentPath: string | null,
+  metadata: FolderMetadata | FileMetadata,
+  blob?: Blob
+): Promise<boolean> {
+  return createEntities(userId, dataroomId, parentPath, [{ metadata, blob }]);
 }
 
 /** Rename an entity (folder or file) inside a dataroom. */
