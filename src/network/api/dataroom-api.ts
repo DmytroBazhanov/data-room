@@ -70,24 +70,29 @@ export async function fetchFileBlob(
 
 // ---- CRUD: Dataroom ----
 
-/** Create a new dataroom for the user. */
+/** Create a new dataroom for the user. Uses name as the ID — no duplicates allowed. */
 export async function createDataroom(
   userId: string,
   name: string
 ): Promise<DataroomRecord> {
-  const id = crypto.randomUUID();
+  // Check for duplicate name
+  const existing = await getDataroom(userId, name);
+  if (existing) {
+    throw new Error(`A dataroom named "${name}" already exists.`);
+  }
+
   const now = new Date();
 
   const record: DataroomRecord = {
     userId,
-    dataroomId: id,
+    dataroomId: name,
     metadata: {
-      id,
+      id: name,
       name,
       fullPath: `/${name}`,
       type: 'folder',
       parentId: null,
-      dataroomId: id,
+      dataroomId: name,
       createdAt: now,
       updatedAt: now,
     },
@@ -97,7 +102,7 @@ export async function createDataroom(
   return record;
 }
 
-/** Rename a dataroom. */
+/** Rename a dataroom. Since ID equals name, this deletes the old record and creates a new one. */
 export async function renameDataroom(
   userId: string,
   dataroomId: string,
@@ -106,12 +111,32 @@ export async function renameDataroom(
   const record = await getDataroom(userId, dataroomId);
   if (!record) return null;
 
+  // Check for duplicate name
+  const existing = await getDataroom(userId, newName);
+  if (existing) {
+    throw new Error(`A dataroom named "${newName}" already exists.`);
+  }
+
+  // Update metadata in-place
   record.metadata.name = newName;
   record.metadata.fullPath = `/${newName}`;
   record.metadata.updatedAt = new Date();
 
-  await putDataroom(record);
-  return record;
+  // Remove old key, insert under new key
+  await deleteDataroom(userId, dataroomId);
+
+  const newRecord: DataroomRecord = {
+    ...record,
+    dataroomId: newName,
+    metadata: {
+      ...record.metadata,
+      id: newName,
+      dataroomId: newName,
+    },
+  };
+
+  await putDataroom(newRecord);
+  return newRecord;
 }
 
 /** Delete a dataroom. */

@@ -5,7 +5,11 @@ import { LoginPage } from '@/routing/pages/LoginPage.tsx';
 
 export const router = createBrowserRouter([
   {
-    path: '*',
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
+    path: '/',
     element: (
       <AuthGuard>
         <ApplicationLayout />
@@ -13,7 +17,11 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: '/login',
-    element: <LoginPage />,
+    path: '/:roomId/*',
+    element: (
+      <AuthGuard>
+        <ApplicationLayout />
+      </AuthGuard>
+    ),
   },
 ]);

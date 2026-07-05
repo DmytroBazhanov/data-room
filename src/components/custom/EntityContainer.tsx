@@ -47,12 +47,14 @@ export function EntityContainer({
   const selectedCount = Object.keys(selectedMap).length;
 
   // Helper to build navigation path correctly (avoid double slash at root)
+  // Encodes the target name to handle spaces and special characters safely in the URL
   const buildNavPath = useCallback(
     (target: string) => {
+      const encoded = encodeURIComponent(target);
       if (pathname === '/' || !pathname) {
-        return `/${target}`;
+        return `/${encoded}`;
       }
-      return `${pathname}/${target}`;
+      return `${pathname}/${encoded}`;
     },
     [pathname]
   );

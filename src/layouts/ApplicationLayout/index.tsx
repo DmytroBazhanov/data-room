@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { ApplicationSidebar } from '@/components/custom/Sidebar.tsx';
 import { ApplicationSearch } from '@/components/custom/Search.tsx';
@@ -23,18 +23,11 @@ export function ApplicationLayout() {
   const { user } = useUser();
   const userId = user?.id;
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-
-  // Dataroom selection is state-based (not in URL)
-  const [selectedDataroomId, setSelectedDataroomId] = useState<string | null>(
-    null
-  );
-
-  // Derive folder path from URL (everything after the leading /)
-  const folderPath = useMemo(() => {
-    const cleaned = pathname === '/' ? '' : pathname;
-    return cleaned || null;
-  }, [pathname]);
+  const params = useParams<{ roomId: string; '*': string }>();
+  const selectedDataroomId: string | null = params.roomId ?? null;
+  // Splat captures everything after /:roomId/ — already decoded by react-router
+  const folderPath: string | null =
+    params['*'] && params['*'].length > 0 ? `/${params['*']}` : null;
 
   // Queries
   const { data: datarooms = [] } = useDatarooms(userId);
@@ -67,8 +60,7 @@ export function ApplicationLayout() {
 
   const handleSelectDataroom = useCallback(
     (id: string) => {
-      setSelectedDataroomId(id);
-      navigate('/', { replace: true });
+      navigate(`/${encodeURIComponent(id)}`, { replace: true });
     },
     [navigate]
   );
@@ -82,16 +74,25 @@ export function ApplicationLayout() {
 
   const handleRenameDataroom = useCallback(
     (id: string, newName: string) => {
-      renameDataroomMutation.mutate({ dataroomId: id, newName });
+      renameDataroomMutation.mutate(
+        { dataroomId: id, newName },
+        {
+          onSuccess: () => {
+            // If the renamed dataroom is the currently selected one, redirect to new name
+            if (selectedDataroomId === id) {
+              navigate(`/${encodeURIComponent(newName)}`, { replace: true });
+            }
+          },
+        }
+      );
     },
-    [renameDataroomMutation]
+    [renameDataroomMutation, selectedDataroomId, navigate]
   );
 
   const handleDeleteDataroom = useCallback(
     (id: string) => {
       deleteDataroomMutation.mutate(id);
       if (selectedDataroomId === id) {
-        setSelectedDataroomId(null);
         navigate('/', { replace: true });
       }
     },

@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,13 +10,18 @@ import {
 import { useMemo } from 'react';
 
 export function FolderCrumbs() {
-  const { pathname } = useLocation();
   const navigate = useNavigate();
+  const params = useParams<{ roomId: string; '*': string }>();
 
-  const segments = pathname.split('/').filter(Boolean);
+  const roomId = params.roomId;
+  // Splat segments are already decoded by react-router
+  const folderSegments = useMemo(() => {
+    if (!params['*'] || params['*'].length === 0) return [];
+    return params['*'].split('/');
+  }, [params]);
 
   const renderCrumbs = useMemo(() => {
-    if (segments.length === 0) {
+    if (!roomId) {
       return (
         <BreadcrumbItem>
           <BreadcrumbPage>-</BreadcrumbPage>
@@ -24,9 +29,15 @@ export function FolderCrumbs() {
       );
     }
 
-    return segments.map((segment, index) => {
-      const isLast = index === segments.length - 1;
-      const cumulativePath = '/' + segments.slice(0, index + 1).join('/');
+    // Build all segments: room name first, then folder segments
+    const allSegments = [roomId, ...folderSegments];
+
+    return allSegments.map((segment, index) => {
+      const isLast = index === allSegments.length - 1;
+
+      // Build cumulative encoded path
+      const encodedParts = allSegments.slice(0, index + 1).map(encodeURIComponent);
+      const cumulativePath = '/' + encodedParts.join('/');
 
       return (
         <BreadcrumbItem key={cumulativePath}>
@@ -47,7 +58,7 @@ export function FolderCrumbs() {
         </BreadcrumbItem>
       );
     });
-  }, [segments, navigate]);
+  }, [roomId, folderSegments, navigate]);
 
   return (
     <Breadcrumb>

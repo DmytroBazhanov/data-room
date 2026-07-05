@@ -83,7 +83,7 @@ export async function getAllDatarooms(
 export async function putDataroom(record: DataroomRecord): Promise<void> {
   const db = await openDB();
   const store = getStore(db, 'readwrite');
-  return promisify(store.put(record));
+  await promisify(store.put(record));
 }
 
 /** Delete a dataroom record. */
