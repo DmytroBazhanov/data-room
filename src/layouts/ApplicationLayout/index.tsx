@@ -1,7 +1,7 @@
-import { Outlet } from 'react-router-dom';
 import { ApplicationSidebar } from '@/components/custom/Sidebar.tsx';
 import { ApplicationSearch } from '@/components/custom/Search.tsx';
 import { FolderCrumbs } from '@/components/custom/FolderCrumbs.tsx';
+import { EntityControls } from '@/components/custom/EntityControls.tsx';
 
 export function ApplicationLayout() {
   return (
@@ -14,7 +14,7 @@ export function ApplicationLayout() {
           <FolderCrumbs />
         </div>
         <main className="mx-auto max-h-[calc(100vh-72px)] w-full flex-1 overflow-y-auto py-4">
-          <Outlet />
+          <EntityControls onCreate={() => alert('Create folder')} />
         </main>
       </div>
     </div>
