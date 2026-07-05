@@ -132,22 +132,46 @@ export function ApplicationLayout() {
     [selectedDataroomId, folderPath, createEntityMutation]
   );
 
-  // Upload files — extracts metadata from File objects, batches into one atomic write
+  // Upload files — extracts metadata from File objects, batches into one atomic write.
+  // Resolves name collisions against existing entities by appending (1), (2), etc.
   const handleUploadFiles = useCallback(
     (files: File[]) => {
       if (!selectedDataroomId || files.length === 0) return;
 
+      // Collect existing names from current folder contents
+      const existingNames = new Set<string>();
+      for (const f of contents?.folders ?? []) existingNames.add(f.name);
+      for (const f of contents?.files ?? []) existingNames.add(f.name);
+
+      // Track names generated in this batch to avoid clashes within the batch
+      const batchNames = new Set<string>();
+
       const entities = files.map((file) => {
         const id = crypto.randomUUID();
         const now = new Date();
+
+        // Resolve name collisions: append (N) until unique
+        const lastDot = file.name.lastIndexOf('.');
+        const baseName = lastDot > 0 ? file.name.slice(0, lastDot) : file.name;
+        const ext = lastDot > 0 ? file.name.slice(lastDot) : '';
+
+        let finalName = file.name;
+        let counter = 1;
+        while (existingNames.has(finalName) || batchNames.has(finalName)) {
+          finalName = `${baseName} (${counter})${ext}`;
+          counter++;
+        }
+        batchNames.add(finalName);
+        existingNames.add(finalName);
+
         const parentPath = folderPath ?? '';
         const fullPath = parentPath
-          ? `${parentPath}/${file.name}`
-          : `/${file.name}`;
+          ? `${parentPath}/${finalName}`
+          : `/${finalName}`;
 
         const metadata: FileMetadata = {
           id,
-          name: file.name,
+          name: finalName,
           fullPath,
           type: 'file',
           parentId: null,
@@ -163,7 +187,7 @@ export function ApplicationLayout() {
 
       createEntitiesMutation.mutate({ parentPath: folderPath, entities });
     },
-    [selectedDataroomId, folderPath, createEntitiesMutation]
+    [selectedDataroomId, folderPath, contents, createEntitiesMutation]
   );
 
   const handleRenameEntity = useCallback(
