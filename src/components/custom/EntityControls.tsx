@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button.tsx';
 import PlusIcon from '@/assets/svg/plus.svg';
 import PencilIcon from '@/assets/svg/pencil.svg';
 import TrashIcon from '@/assets/svg/trash.svg';
-import FolderIcon from '@/assets/svg/folder.svg';
+import FolderOpenIcon from '@/assets/svg/open-folder.svg';
 
 interface EntityControlsProps {
   onCreate?: () => void;
@@ -52,7 +52,7 @@ export function EntityControls({
         disabled={!onOpen}
         onClick={onOpen}
       >
-        <img alt="Open" src={FolderIcon} className="size-4" />
+        <img alt="Open" src={FolderOpenIcon} className="size-4" />
       </Button>
     </div>
   );
