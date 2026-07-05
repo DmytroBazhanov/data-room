@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { ApplicationSidebar } from '@/components/custom/Sidebar.tsx';
 import { ApplicationSearch } from '@/components/custom/Search.tsx';
@@ -22,6 +22,7 @@ import type { FolderMetadata, FileMetadata } from '@/types/dataroom.ts';
 export function ApplicationLayout() {
   const { user } = useUser();
   const userId = user?.id;
+  const navigate = useNavigate();
   const { pathname } = useLocation();
 
   // Dataroom selection is state-based (not in URL)
@@ -64,9 +65,13 @@ export function ApplicationLayout() {
 
   // ---- Dataroom callbacks ----
 
-  const handleSelectDataroom = useCallback((id: string) => {
-    setSelectedDataroomId(id);
-  }, []);
+  const handleSelectDataroom = useCallback(
+    (id: string) => {
+      setSelectedDataroomId(id);
+      navigate('/', { replace: true });
+    },
+    [navigate]
+  );
 
   const handleCreateDataroom = useCallback(
     (name: string) => {
@@ -87,9 +92,10 @@ export function ApplicationLayout() {
       deleteDataroomMutation.mutate(id);
       if (selectedDataroomId === id) {
         setSelectedDataroomId(null);
+        navigate('/', { replace: true });
       }
     },
-    [deleteDataroomMutation, selectedDataroomId]
+    [deleteDataroomMutation, selectedDataroomId, navigate]
   );
 
   // ---- Entity callbacks ----
