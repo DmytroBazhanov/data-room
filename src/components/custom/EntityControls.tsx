@@ -22,6 +22,7 @@ export function EntityControls({
       <Button
         variant="ghost"
         size="icon-sm"
+        title={onCreate ? 'Create' : undefined}
         disabled={!onCreate}
         onClick={onCreate}
       >
@@ -31,6 +32,7 @@ export function EntityControls({
       <Button
         variant="ghost"
         size="icon-sm"
+        title={onRename ? 'Rename' : undefined}
         disabled={!onRename}
         onClick={onRename}
       >
@@ -40,6 +42,7 @@ export function EntityControls({
       <Button
         variant="ghost"
         size="icon-sm"
+        title={onDelete ? 'Delete' : undefined}
         disabled={!onDelete}
         onClick={onDelete}
       >
@@ -49,6 +52,7 @@ export function EntityControls({
       <Button
         variant="ghost"
         size="icon-sm"
+        title={onOpen ? 'Open' : undefined}
         disabled={!onOpen}
         onClick={onOpen}
       >
