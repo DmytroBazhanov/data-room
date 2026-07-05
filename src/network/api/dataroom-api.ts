@@ -10,6 +10,7 @@ import {
   deleteDataroom,
   traversePath,
   getChildren,
+  getFileBlob,
   createChildEntity,
   renameChildEntity,
   deleteChildEntity,
@@ -46,6 +47,25 @@ export async function fetchDataroomContents(
   if (!node) return null;
 
   return getChildren(node);
+}
+
+/** Fetch a file's blob from a dataroom. */
+export async function fetchFileBlob(
+  userId: string,
+  dataroomId: string,
+  parentPath: string | null,
+  fileId: string
+): Promise<Blob | null> {
+  const record = await getDataroom(userId, dataroomId);
+  if (!record) return null;
+
+  const pathSegments = parentPath ? parentPath.split('/').filter(Boolean) : [];
+  const parent =
+    pathSegments.length > 0 ? traversePath(record, pathSegments) : record;
+
+  if (!parent) return null;
+
+  return getFileBlob(parent, fileId) ?? null;
 }
 
 // ---- CRUD: Dataroom ----

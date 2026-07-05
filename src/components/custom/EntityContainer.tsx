@@ -5,7 +5,8 @@ import { EntityControls } from '@/components/custom/EntityControls.tsx';
 import { NameDialog } from '@/components/custom/dialogs/NameDialog.tsx';
 import { ConfirmDialog } from '@/components/custom/dialogs/ConfirmDialog.tsx';
 import { FileUploadDialog } from '@/components/custom/dialogs/FileUploadDialog.tsx';
-import type { EntityMetadata } from '@/types/dataroom.ts';
+import { FilePreviewDialog } from '@/components/custom/dialogs/FilePreviewDialog.tsx';
+import type { EntityMetadata, FileMetadata } from '@/types/dataroom.ts';
 
 type EntityType = 'folder' | 'file';
 
@@ -13,6 +14,8 @@ interface EntityContainerProps {
   entities: EntityMetadata[];
   entityType: EntityType;
   dataroomId: string;
+  userId?: string;
+  parentPath: string | null;
   onCreate?: (name: string) => void;
   onUploadFiles?: (files: File[]) => void;
   onRename?: (entityId: string, newName: string) => void;
@@ -23,6 +26,8 @@ export function EntityContainer({
   entities,
   entityType,
   dataroomId,
+  userId,
+  parentPath,
   onCreate,
   onUploadFiles,
   onRename,
@@ -37,6 +42,7 @@ export function EntityContainer({
   const [uploadOpen, setUploadOpen] = useState(false);
   const [renameTargetId, setRenameTargetId] = useState<string | null>(null);
   const [deleteTargetIds, setDeleteTargetIds] = useState<string[] | null>(null);
+  const [previewFile, setPreviewFile] = useState<FileMetadata | null>(null);
 
   const selectedCount = Object.keys(selectedMap).length;
 
@@ -159,7 +165,7 @@ export function EntityContainer({
     if (entity.type === 'folder') {
       navigate(buildNavPath(entity.name));
     } else {
-      alert('file opened');
+      setPreviewFile(entity as FileMetadata);
     }
   }, [getSelectedEntity, navigate, buildNavPath]);
 
@@ -168,7 +174,7 @@ export function EntityContainer({
       if (entity.type === 'folder') {
         navigate(buildNavPath(entity.name));
       } else {
-        alert('file opened');
+        setPreviewFile(entity as FileMetadata);
       }
     },
     [navigate, buildNavPath]
@@ -254,6 +260,16 @@ export function EntityContainer({
         message={`Are you sure you want to delete ${deleteTargetIds?.length ?? 0} item(s)? This action cannot be undone.`}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTargetIds(null)}
+      />
+
+      {/* File preview dialog */}
+      <FilePreviewDialog
+        open={previewFile !== null}
+        file={previewFile}
+        userId={userId}
+        dataroomId={dataroomId}
+        parentPath={parentPath}
+        onClose={() => setPreviewFile(null)}
       />
     </div>
   );

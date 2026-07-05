@@ -219,6 +219,8 @@ export function ApplicationLayout() {
                 entities={folders}
                 entityType="folder"
                 dataroomId={selectedDataroomId}
+                userId={userId}
+                parentPath={folderPath}
                 onCreate={handleCreateFolder}
                 onRename={handleRenameEntity}
                 onDelete={handleDeleteEntity}
@@ -227,6 +229,8 @@ export function ApplicationLayout() {
                 entities={files}
                 entityType="file"
                 dataroomId={selectedDataroomId}
+                userId={userId}
+                parentPath={folderPath}
                 onUploadFiles={handleUploadFiles}
                 onRename={handleRenameEntity}
                 onDelete={handleDeleteEntity}

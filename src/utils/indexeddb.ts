@@ -93,7 +93,7 @@ export async function deleteDataroom(
 ): Promise<void> {
   const db = await openDB();
   const store = getStore(db, 'readwrite');
-  return promisify(store.delete([userId, dataroomId]));
+  await promisify(store.delete([userId, dataroomId]));
 }
 
 // ---- Tree Helpers ----
@@ -121,6 +121,19 @@ export function traversePath(
   }
 
   return current;
+}
+
+/**
+ * Get the blob from a file node by its id within a parent node.
+ */
+export function getFileBlob(
+  node: DataroomRecord | IndexedDBNode,
+  fileId: string
+): Blob | undefined {
+  const child = (node as Record<string, unknown>)[fileId];
+  if (!isNode(child)) return undefined;
+  if (child.metadata.type !== 'file') return undefined;
+  return (child as Record<string, unknown>).blob as Blob | undefined;
 }
 
 /**
