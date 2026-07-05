@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { ApplicationSidebar } from '@/components/custom/Sidebar.tsx';
-import { ApplicationSearch } from '@/components/custom/Search.tsx';
 import { FolderCrumbs } from '@/components/custom/FolderCrumbs.tsx';
 import { EntityContainer } from '@/components/custom/EntityContainer.tsx';
 import {
@@ -227,7 +226,6 @@ export function ApplicationLayout() {
       />
 
       <div className="flex flex-col h-full min-w-0 grow-1 w-full px-2">
-        <ApplicationSearch />
         <div className="pt-2">
           <FolderCrumbs />
         </div>
@@ -243,7 +241,7 @@ export function ApplicationLayout() {
               <p className="text-muted-foreground">Loading contents...</p>
             </div>
           ) : (
-            <>
+            <div className="flex flex-col gap-4">
               <EntityContainer
                 entities={folders}
                 entityType="folder"
@@ -264,7 +262,7 @@ export function ApplicationLayout() {
                 onRename={handleRenameEntity}
                 onDelete={handleDeleteEntities}
               />
-            </>
+            </div>
           )}
         </main>
       </div>

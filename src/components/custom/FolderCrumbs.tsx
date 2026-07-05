@@ -36,7 +36,9 @@ export function FolderCrumbs() {
       const isLast = index === allSegments.length - 1;
 
       // Build cumulative encoded path
-      const encodedParts = allSegments.slice(0, index + 1).map(encodeURIComponent);
+      const encodedParts = allSegments
+        .slice(0, index + 1)
+        .map(encodeURIComponent);
       const cumulativePath = '/' + encodedParts.join('/');
 
       return (
@@ -62,7 +64,7 @@ export function FolderCrumbs() {
 
   return (
     <Breadcrumb>
-      <BreadcrumbList>{renderCrumbs}</BreadcrumbList>
+      <BreadcrumbList className="text-xl">{renderCrumbs}</BreadcrumbList>
     </Breadcrumb>
   );
 }
