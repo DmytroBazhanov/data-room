@@ -1,27 +1,55 @@
 import { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Entity, type EntityData } from '@/components/custom/Entity.tsx';
+import { Entity } from '@/components/custom/Entity.tsx';
 import { EntityControls } from '@/components/custom/EntityControls.tsx';
+import { NameDialog } from '@/components/custom/dialogs/NameDialog.tsx';
+import { ConfirmDialog } from '@/components/custom/dialogs/ConfirmDialog.tsx';
+import { FileUploadDialog } from '@/components/custom/dialogs/FileUploadDialog.tsx';
+import type { EntityMetadata } from '@/types/dataroom.ts';
 
 type EntityType = 'folder' | 'file';
 
 interface EntityContainerProps {
-  entities: EntityData[];
+  entities: EntityMetadata[];
   entityType: EntityType;
   dataroomId: string;
+  onCreate?: (name: string) => void;
+  onUploadFiles?: (files: File[]) => void;
+  onRename?: (entityId: string, newName: string) => void;
+  onDelete?: (entityId: string) => void;
 }
 
 export function EntityContainer({
-  entities: initialEntities,
+  entities,
   entityType,
   dataroomId,
+  onCreate,
+  onUploadFiles,
+  onRename,
+  onDelete,
 }: EntityContainerProps) {
-  const [entities, setEntities] = useState<EntityData[]>(initialEntities);
   const [selectedMap, setSelectedMap] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
+  // Dialog state
+  const [createOpen, setCreateOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [renameTargetId, setRenameTargetId] = useState<string | null>(null);
+  const [deleteTargetIds, setDeleteTargetIds] = useState<string[] | null>(null);
+
   const selectedCount = Object.keys(selectedMap).length;
+
+  // Helper to build navigation path correctly (avoid double slash at root)
+  const buildNavPath = useCallback(
+    (target: string) => {
+      if (pathname === '/' || !pathname) {
+        return `/${target}`;
+      }
+      return `${pathname}/${target}`;
+    },
+    [pathname]
+  );
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedMap((prev) => {
@@ -39,76 +67,111 @@ export function EntityContainer({
     return Object.keys(selectedMap);
   }, [selectedMap]);
 
-  const handleCreate = useCallback(() => {
-    const name = prompt('Enter name:');
-    if (!name) return;
+  const getSelectedEntity = useCallback((): EntityMetadata | undefined => {
+    const ids = getSelectedIds();
+    return entities.find((e) => ids.includes(e.id));
+  }, [getSelectedIds, entities]);
 
-    const exists = entities.some(
-      (e) => e.id.toLowerCase() === name.toLowerCase()
-    );
-    if (exists) {
-      alert('An entity with this name already exists.');
-      return;
+  // Create (folder) / Upload (file)
+  const handleCreateClick = useCallback(() => {
+    if (entityType === 'folder') {
+      setCreateOpen(true);
+    } else {
+      setUploadOpen(true);
     }
+  }, [entityType]);
 
-    const newEntity: EntityData = {
-      id: name,
-      name,
-      type: entityType,
-      dataroomName: dataroomId,
-    };
-    setEntities((prev) => [...prev, newEntity]);
-  }, [entityType, dataroomId, entities]);
+  const handleCreateConfirm = useCallback(
+    (name: string) => {
+      onCreate?.(name);
+      setCreateOpen(false);
+    },
+    [onCreate]
+  );
 
-  const handleRename = useCallback(() => {
-    const selectedIds = getSelectedIds();
-    if (selectedIds.length === 0) return;
+  const handleUploadConfirm = useCallback(
+    (files: File[]) => {
+      onUploadFiles?.(files);
+      setUploadOpen(false);
+    },
+    [onUploadFiles]
+  );
 
-    const newName = prompt('Enter new name:');
-    if (!newName) return;
+  // Name existence check for create dialog
+  const nameExists = useCallback(
+    (name: string) =>
+      entities.some((e) => e.name.toLowerCase() === name.toLowerCase()),
+    [entities]
+  );
 
-    setEntities((prev) =>
-      prev.map((e) =>
-        selectedIds.includes(e.id) ? { ...e, name: newName } : e
-      )
-    );
-  }, [getSelectedIds]);
-
-  const handleDelete = useCallback(() => {
-    const selectedIds = getSelectedIds();
-    if (selectedIds.length === 0) return;
-
-    setEntities((prev) => prev.filter((e) => !selectedIds.includes(e.id)));
-    setSelectedMap((prev) => {
-      const next = { ...prev };
-      selectedIds.forEach((id) => delete next[id]);
-      return next;
-    });
-  }, [getSelectedIds]);
-
-  const handleOpen = useCallback(() => {
-    const selectedIds = getSelectedIds();
-    if (selectedIds.length === 0) return;
-
-    const selectedEntity = entities.find((e) => selectedIds.includes(e.id));
+  // Rename
+  const handleRenameClick = useCallback(() => {
+    const selectedEntity = getSelectedEntity();
     if (!selectedEntity) return;
+    setRenameTargetId(selectedEntity.id);
+    setSelectedMap({});
+  }, [getSelectedEntity]);
 
-    if (selectedEntity.type === 'folder') {
-      navigate(`${pathname}/${selectedEntity.id}`);
+  const handleRenameConfirm = useCallback(
+    (newName: string) => {
+      if (renameTargetId) {
+        onRename?.(renameTargetId, newName);
+      }
+      setRenameTargetId(null);
+    },
+    [renameTargetId, onRename]
+  );
+
+  const selectedEntity = renameTargetId
+    ? entities.find((e) => e.id === renameTargetId)
+    : null;
+
+  // Name existence check for rename (exclude current entity)
+  const renameNameExists = useCallback(
+    (name: string) =>
+      entities.some(
+        (e) =>
+          e.name.toLowerCase() === name.toLowerCase() && e.id !== renameTargetId
+      ),
+    [entities, renameTargetId]
+  );
+
+  // Delete
+  const handleDeleteClick = useCallback(() => {
+    const selectedIds = getSelectedIds();
+    if (selectedIds.length === 0) return;
+    setDeleteTargetIds(selectedIds);
+  }, [getSelectedIds]);
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (deleteTargetIds) {
+      deleteTargetIds.forEach((id) => onDelete?.(id));
+    }
+    setDeleteTargetIds(null);
+    setSelectedMap({});
+  }, [deleteTargetIds, onDelete]);
+
+  // Open
+  const handleOpen = useCallback(() => {
+    const entity = getSelectedEntity();
+    if (!entity) return;
+
+    if (entity.type === 'folder') {
+      navigate(buildNavPath(entity.name));
     } else {
       alert('file opened');
     }
-  }, [getSelectedIds, entities, navigate, pathname]);
+  }, [getSelectedEntity, navigate, buildNavPath]);
 
   const handleDoubleClick = useCallback(
-    (entity: EntityData) => {
+    (entity: EntityMetadata) => {
       if (entity.type === 'folder') {
-        navigate(`${pathname}/${entity.id}`);
+        navigate(buildNavPath(entity.name));
       } else {
         alert('file opened');
       }
     },
-    [navigate, pathname]
+    [navigate, buildNavPath]
   );
 
   const isFolderLayout = entityType === 'folder';
@@ -116,9 +179,9 @@ export function EntityContainer({
   return (
     <div>
       <EntityControls
-        onCreate={handleCreate}
-        onRename={selectedCount === 1 ? handleRename : undefined}
-        onDelete={handleDelete}
+        onCreate={handleCreateClick}
+        onRename={selectedCount === 1 ? handleRenameClick : undefined}
+        onDelete={selectedCount > 0 ? handleDeleteClick : undefined}
         onOpen={selectedCount === 1 ? handleOpen : undefined}
       />
 
@@ -151,6 +214,47 @@ export function EntityContainer({
           ))}
         </div>
       )}
+
+      {/* Create folder dialog */}
+      <NameDialog
+        open={createOpen}
+        title={`Create ${entityType === 'folder' ? 'Folder' : 'File'}`}
+        placeholder={`Enter ${entityType === 'folder' ? 'folder' : 'file'} name...`}
+        existsCheck={nameExists}
+        existsMessage="An entity with this name already exists."
+        onConfirm={handleCreateConfirm}
+        onCancel={() => setCreateOpen(false)}
+      />
+
+      {/* Upload file dialog */}
+      {entityType === 'file' && (
+        <FileUploadDialog
+          open={uploadOpen}
+          onConfirm={handleUploadConfirm}
+          onCancel={() => setUploadOpen(false)}
+        />
+      )}
+
+      {/* Rename dialog */}
+      <NameDialog
+        open={renameTargetId !== null}
+        title={`Rename ${entityType === 'folder' ? 'Folder' : 'File'}`}
+        initialValue={selectedEntity?.name ?? ''}
+        placeholder="Enter new name..."
+        existsCheck={renameNameExists}
+        existsMessage="An entity with this name already exists."
+        onConfirm={handleRenameConfirm}
+        onCancel={() => setRenameTargetId(null)}
+      />
+
+      {/* Delete dialog */}
+      <ConfirmDialog
+        open={deleteTargetIds !== null}
+        title={`Delete ${entityType === 'folder' ? 'Folder(s)' : 'File(s)'}`}
+        message={`Are you sure you want to delete ${deleteTargetIds?.length ?? 0} item(s)? This action cannot be undone.`}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTargetIds(null)}
+      />
     </div>
   );
 }

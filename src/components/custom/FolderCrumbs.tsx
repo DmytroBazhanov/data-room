@@ -15,19 +15,15 @@ export function FolderCrumbs() {
 
   const segments = pathname.split('/').filter(Boolean);
 
-  if (segments.length === 0) {
-    return (
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbPage>-</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-    );
-  }
-
   const renderCrumbs = useMemo(() => {
+    if (segments.length === 0) {
+      return (
+        <BreadcrumbItem>
+          <BreadcrumbPage>-</BreadcrumbPage>
+        </BreadcrumbItem>
+      );
+    }
+
     return segments.map((segment, index) => {
       const isLast = index === segments.length - 1;
       const cumulativePath = '/' + segments.slice(0, index + 1).join('/');
@@ -51,7 +47,7 @@ export function FolderCrumbs() {
         </BreadcrumbItem>
       );
     });
-  }, [segments]);
+  }, [segments, navigate]);
 
   return (
     <Breadcrumb>

@@ -1,16 +1,10 @@
 import { cn } from '@/utils/tailwind.ts';
 import FolderSvg from '@/assets/svg/folder.svg';
 import FileSvg from '@/assets/svg/file.svg';
-
-export interface EntityData {
-  id: string;
-  name: string;
-  type: 'folder' | 'file';
-  dataroomName: string;
-}
+import type { EntityMetadata } from '@/types/dataroom.ts';
 
 interface EntityProps {
-  entity: EntityData;
+  entity: EntityMetadata;
   isSelected: boolean;
   onClick: () => void;
   onDoubleClick: () => void;
@@ -22,7 +16,7 @@ export function Entity({
   onClick,
   onDoubleClick,
 }: EntityProps) {
-  const { type, name, dataroomName } = entity;
+  const { type, name, dataroomId } = entity;
 
   if (type === 'folder') {
     return (
@@ -39,7 +33,7 @@ export function Entity({
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-sm font-bold truncate">{name}</span>
           <span className="text-xs text-muted-foreground truncate">
-            {dataroomName}
+            {dataroomId}
           </span>
         </div>
       </div>
