@@ -23,30 +23,10 @@ export function ApplicationSidebar({
   onRenameDataroom,
   onDeleteDataroom,
 }: ApplicationSidebarProps) {
-  const [selectedMap, setSelectedMap] = useState<Record<string, boolean>>({});
-
   // Dialog state
   const [createOpen, setCreateOpen] = useState(false);
-  const [renameTargetId, setRenameTargetId] = useState<string | null>(null);
-  const [deleteTargetIds, setDeleteTargetIds] = useState<string[] | null>(null);
-
-  const selectedCount = Object.keys(selectedMap).length;
-
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedMap((prev) => {
-      const next = { ...prev };
-      if (next[id]) {
-        delete next[id];
-      } else {
-        next[id] = true;
-      }
-      return next;
-    });
-  }, []);
-
-  const getSelectedIds = useCallback((): string[] => {
-    return Object.keys(selectedMap);
-  }, [selectedMap]);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   // Create
   const handleCreateClick = useCallback(() => {
@@ -68,26 +48,24 @@ export function ApplicationSidebar({
     [datarooms]
   );
 
-  // Rename
+  // Rename — operates on currently selected dataroom
   const handleRenameClick = useCallback(() => {
-    const selectedIds = getSelectedIds();
-    if (selectedIds.length === 0) return;
-    setRenameTargetId(selectedIds[0]);
-    setSelectedMap({});
-  }, [getSelectedIds]);
+    if (!selectedDataroomId) return;
+    setRenameOpen(true);
+  }, [selectedDataroomId]);
 
   const handleRenameConfirm = useCallback(
     (newName: string) => {
-      if (renameTargetId) {
-        onRenameDataroom(renameTargetId, newName);
+      if (selectedDataroomId) {
+        onRenameDataroom(selectedDataroomId, newName);
       }
-      setRenameTargetId(null);
+      setRenameOpen(false);
     },
-    [renameTargetId, onRenameDataroom]
+    [selectedDataroomId, onRenameDataroom]
   );
 
-  const selectedDataroom = renameTargetId
-    ? datarooms.find((d) => d.id === renameTargetId)
+  const selectedDataroom = selectedDataroomId
+    ? datarooms.find((d) => d.id === selectedDataroomId)
     : null;
 
   // Name existence check for rename (exclude current dataroom)
@@ -95,32 +73,33 @@ export function ApplicationSidebar({
     (name: string) =>
       datarooms.some(
         (d) =>
-          d.name.toLowerCase() === name.toLowerCase() && d.id !== renameTargetId
+          d.name.toLowerCase() === name.toLowerCase() &&
+          d.id !== selectedDataroomId
       ),
-    [datarooms, renameTargetId]
+    [datarooms, selectedDataroomId]
   );
 
-  // Delete
+  // Delete — operates on currently selected dataroom
   const handleDeleteClick = useCallback(() => {
-    const selectedIds = getSelectedIds();
-    if (selectedIds.length === 0) return;
-    setDeleteTargetIds(selectedIds);
-  }, [getSelectedIds]);
+    if (!selectedDataroomId) return;
+    setDeleteOpen(true);
+  }, [selectedDataroomId]);
 
   const handleDeleteConfirm = useCallback(() => {
-    if (deleteTargetIds) {
-      deleteTargetIds.forEach((id) => onDeleteDataroom(id));
+    if (selectedDataroomId) {
+      onDeleteDataroom(selectedDataroomId);
     }
-    setDeleteTargetIds(null);
-    setSelectedMap({});
-  }, [deleteTargetIds, onDeleteDataroom]);
+    setDeleteOpen(false);
+  }, [selectedDataroomId, onDeleteDataroom]);
+
+  const hasSelection = selectedDataroomId !== null;
 
   return (
     <aside className="h-full w-full min-w-40 max-w-60 grow-2 overflow-y-auto p-4 bg-green-50 flex flex-col gap-2">
       <EntityControls
         onCreate={handleCreateClick}
-        onRename={selectedCount === 1 ? handleRenameClick : undefined}
-        onDelete={selectedCount > 0 ? handleDeleteClick : undefined}
+        onRename={hasSelection ? handleRenameClick : undefined}
+        onDelete={hasSelection ? handleDeleteClick : undefined}
       />
 
       {datarooms.length === 0 ? (
@@ -134,30 +113,18 @@ export function ApplicationSidebar({
       ) : (
         <div className="flex flex-col gap-1">
           {datarooms.map((dataroom) => (
-            <div key={dataroom.id} className="flex items-center gap-1">
-              <Button
-                variant={
-                  selectedDataroomId === dataroom.id ? 'default' : 'ghost'
-                }
-                size="sm"
-                className={cn(
-                  'flex-1 justify-start truncate',
-                  selectedDataroomId === dataroom.id && 'bg-blue-100'
-                )}
-                onClick={() => {
-                  onSelectDataroom(dataroom.id);
-                  setSelectedMap({});
-                }}
-              >
-                {dataroom.name}
-              </Button>
-              <input
-                type="checkbox"
-                className="size-4 shrink-0 cursor-pointer"
-                checked={!!selectedMap[dataroom.id]}
-                onChange={() => toggleSelect(dataroom.id)}
-              />
-            </div>
+            <Button
+              key={dataroom.id}
+              variant={selectedDataroomId === dataroom.id ? 'default' : 'ghost'}
+              size="lg"
+              className={cn(
+                'flex-1 justify-start truncate text-lg cursor-pointer',
+                selectedDataroomId === dataroom.id && 'bg-blue-500'
+              )}
+              onClick={() => onSelectDataroom(dataroom.id)}
+            >
+              {dataroom.name}
+            </Button>
           ))}
         </div>
       )}
@@ -175,23 +142,23 @@ export function ApplicationSidebar({
 
       {/* Rename dialog */}
       <NameDialog
-        open={renameTargetId !== null}
+        open={renameOpen}
         title="Rename Dataroom"
         initialValue={selectedDataroom?.name ?? ''}
         placeholder="Enter new name..."
         existsCheck={renameNameExists}
         existsMessage="A dataroom with this name already exists."
         onConfirm={handleRenameConfirm}
-        onCancel={() => setRenameTargetId(null)}
+        onCancel={() => setRenameOpen(false)}
       />
 
       {/* Delete dialog */}
       <ConfirmDialog
-        open={deleteTargetIds !== null}
-        title="Delete Dataroom(s)"
-        message={`Are you sure you want to delete ${deleteTargetIds?.length ?? 0} dataroom(s)? This action cannot be undone.`}
+        open={deleteOpen}
+        title="Delete Dataroom"
+        message={`Are you sure you want to delete "${selectedDataroom?.name ?? ''}"? This action cannot be undone.`}
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteTargetIds(null)}
+        onCancel={() => setDeleteOpen(false)}
       />
     </aside>
   );

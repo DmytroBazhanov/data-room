@@ -207,8 +207,8 @@ export function EntityContainer({
         <div
           className={
             isFolderLayout
-              ? 'mt-2 flex grow-0 w-full gap-1 overflow-x-auto'
-              : 'mt-2 flex flex-wrap gap-1'
+              ? 'mt-2 flex grow-0 w-full gap-1 overflow-x-auto p-2'
+              : 'mt-2 flex flex-wrap gap-1 p-2'
           }
         >
           {entities.map((entity) => (
