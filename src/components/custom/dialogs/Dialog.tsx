@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button.tsx';
+import { twMerge } from 'tailwind-merge';
 
 interface DialogProps {
   open: boolean;
   title: string;
   children: ReactNode;
+  className?: string;
   confirmLabel?: string;
   cancelLabel?: string;
   onConfirm: () => void;
@@ -21,6 +23,7 @@ export function Dialog({
   onConfirm,
   onCancel,
   confirmDisabled = false,
+  className = '',
 }: DialogProps) {
   if (!open) return null;
 
@@ -34,13 +37,20 @@ export function Dialog({
       />
 
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+      <div
+        className={twMerge(
+          'relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-xl',
+          className
+        )}
+      >
         <h2 className="mb-4 text-lg font-semibold">{title}</h2>
         <div className="mb-6">{children}</div>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onCancel}>
-            {cancelLabel}
-          </Button>
+          {cancelLabel && (
+            <Button variant="outline" onClick={onCancel}>
+              {cancelLabel}
+            </Button>
+          )}
           <Button onClick={onConfirm} disabled={confirmDisabled}>
             {confirmLabel}
           </Button>

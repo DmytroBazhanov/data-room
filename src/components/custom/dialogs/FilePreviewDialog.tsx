@@ -47,6 +47,7 @@ export function FilePreviewDialog({
   return (
     <Dialog
       open={open}
+      className="max-w-[1400px]"
       title="File Preview"
       confirmLabel="Close"
       cancelLabel=""
