@@ -1,0 +1,3 @@
+- Components should be created inside components folder if they are reusable.
+- If component is created to simplify logic/improve readability then create folder with the name of file that will use these components and place all components there with logical naming, main component should be called index and export named component.
+- For styling use tailwind.

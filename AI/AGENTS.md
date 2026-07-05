@@ -1,0 +1,12 @@
+- Use TypeScript.
+- Do not rewrite unrelated code unless explicitly prompted to.
+- Preserve existing comments.
+- Prefer small focused changes.
+- Use React functional components.
+- Use Tailwind if styling is needed.
+- Explain risky changes before applying them.
+- Plan before making changes, after planning complete present the plan with bullet points list, when plan is ready stop and ask user if the plan is satisfactory.
+- Run tests/typecheck after code changes when possible.
+- Always apply prettier rules when finished with code generation.
+- Before creating something UI related - always check for reusable components and use them if possible.
+- All utility functions should be in utils folder. Do not create utils inside of components. If util function is highly specific then create a utils folder around component file and place it there.

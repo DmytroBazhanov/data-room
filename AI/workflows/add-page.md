@@ -1,0 +1,2 @@
+- Router tsx is the only place where routes should be created. Pages in pages folder should consist mostly from layouts and components, try to avoid creating logic inside page, add it only if absolutelly necessary, for example if request data will be used across whole page.
+- For pages with page-specific components, create a folder in pages using the page name, add the page entry point as index.tsx, and place page-specific components in that page folder's components directory. Only add components outside pages when they are actually reusable across pages.
