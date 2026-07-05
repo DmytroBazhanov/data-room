@@ -2,3 +2,5 @@
 - If component is created to simplify logic/improve readability then create folder with the name of file that will use these components and place all components there with logical naming, main component should be called index and export named component.
 - For styling use tailwind.
 - Components should be granular and compact
+- When adding component add them to /components/custom
+- Use component from /ui to build custom components
