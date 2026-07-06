@@ -15,14 +15,14 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@components/*": ["src/components/*"],
-      "@layouts/*": ["src/layouts/*"],
-      "@pages/*": ["src/pages/*"],
-      "@utils/*": ["src/utils/*"],
-      "@scripts/*": ["src/scripts/*"],
-      "@types": ["src/types/index.ts"],
-      "@translation": ["src/utils/i18n/interpolation.ts"],
-      "@routes": ["src/utils/routes/routes.ts"]
+      "@components/*": ["./src/components/*"],
+      "@layouts/*": ["./src/layouts/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@scripts/*": ["./src/scripts/*"],
+      "@types": ["./src/types/index.ts"],
+      "@translation": ["./src/utils/i18n/interpolation.ts"],
+      "@routes": ["./src/utils/routes/routes.ts"]
     },
     "allowArbitraryExtensions": true,
     "verbatimModuleSyntax": true,
