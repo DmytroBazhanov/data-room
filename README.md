@@ -10,7 +10,7 @@
 
 This is base structure i use for applications since i find it easier to navigate and split logic that way.
 
-<pre>```src/
+<pre>src/
 ├── assets/
 ├── components/
 │   ├── custom/  <- Component created specifically for the app stored here
@@ -26,7 +26,7 @@ This is base structure i use for applications since i find it easier to navigate
 │   ├── pages/
 │   └── router.tsx
 ├── types/
-└── utils/```</pre>
+└── utils/</pre>
 
 ## Implementation details
 
