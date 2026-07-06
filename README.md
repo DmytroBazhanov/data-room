@@ -1,75 +1,42 @@
-# React + TypeScript + Vite
+# Setup
+1. Run 'npm install'
+2. Add the file named '.env.local' and add there a key 'VITE_CLERK_PUBLISHABLE_KEY' which should be functioning clerk publishable key for auth and application to work properly.
+3. Run 'npm run dev'
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+# Design and development decisions
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Structure
 
-## React Compiler
+This is base structure i use for applications since i find it easier to navigate and split logic that way.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+<pre>src/
+├── assets/
+├── components/
+│   ├── custom/  <- Component created specifically for the app stored here
+│   └── ui/      <- Shadcn components 
+├── config/      <- Any config objects required to setup something in the app 
+├── layouts/                   <- Layouts used throughout app
+│   └── ApplicationLayout/
+├── network/
+│   ├── api/     <- Network calls logic
+│   ├── mutations/ <- Usable react-query wrappers around api calls
+│   └── queries/   <- Same here but for queries
+├── routing/
+│   ├── pages/
+│   └── router.tsx
+├── types/
+└── utils/</pre>
 
-## Expanding the ESLint configuration
+## Implementation details
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Iframe for native pfd renders. Ideal compromise of speed of development and quality.
+- Datastructure chosen to store the data is map. Constant speed searches, easy to navigate. Easy to redesign to work with No-SQL database.
+- Regarding design, it is basically stripped down google drive, removed all the features that isn't present. Why go for google drive design? Widely used, common design, easy to get used to even if didn't work with it before. Additional controls in combination with tooltips should make it easier to use controls. Common controls between dataroom, folder and file entities should make it easier to understand how to work with each entity.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## AI usage
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+1. I designed the system and created mock design before actually approaching the codding part.
+2. Setup the project, created simple AI rules to channel the AI compute into the structure I want to see and be able to edit in future.
+3. Created first few components by myself and then started to prompt AI to implement features going through my notes from planning.
+4. After generation phase were complete manually fixed present UI and logic bugs.
